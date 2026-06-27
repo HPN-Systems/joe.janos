@@ -3,21 +3,6 @@
    Lead Manager, Auth & Dashboard Logic
    =========================== */
 
-// --- Firebase Initialization ---
-const firebaseConfig = {
-    apiKey: "AIzaSyDcZKBXHaL_sQmKwKiexaX69jQ028qpUqg",
-    authDomain: "hpn-project-da088.firebaseapp.com",
-    projectId: "hpn-project-da088",
-    storageBucket: "hpn-project-da088.firebasestorage.app",
-    messagingSenderId: "414937667806",
-    appId: "1:414937667806:web:d65eafb25c7459631f8a4f"
-};
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
-const db = firebase.firestore();
-const auth = firebase.auth();
-
 document.addEventListener('DOMContentLoaded', () => {
     const loginScreen = document.getElementById('login-screen');
     const dashboardScreen = document.getElementById('dashboard-screen');
@@ -56,72 +41,52 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('hpn-theme', next);
     });
 
-    // --- Authentication Logic (Firebase) ---
-    auth.onAuthStateChanged(user => {
-        if (user) {
-            // User is signed in
-            let emailName = user.email.split('@')[0];
-            emailName = emailName.charAt(0).toUpperCase() + emailName.slice(1).toLowerCase();
-            showDashboard(emailName);
-        } else {
-            // No user is signed in
-            showLogin();
-        }
-    });
+    // --- Authentication Logic ---
+    const activeAdmin = sessionStorage.getItem('hpn-admin-user');
+    if (activeAdmin) {
+        showDashboard(activeAdmin);
+    }
 
-    loginForm.addEventListener('submit', async (e) => {
+    loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
 
-        const emailInput = document.getElementById('email').value.trim();
+        const usernameInput = document.getElementById('username').value.trim();
         const passwordInput = document.getElementById('password').value;
-        const submitBtn = loginForm.querySelector('button[type="submit"]');
 
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Logging in...';
+        const validPassword = 'Password44';
+        const validUsers = [
+            'Joe'
+        ];
 
-        try {
-            await auth.signInWithEmailAndPassword(emailInput, passwordInput);
+        const isUserValid = validUsers.some(user => user.toLowerCase() === usernameInput.toLowerCase());
+
+        if (isUserValid && passwordInput === validPassword) {
             errorMsg.style.display = 'none';
-        } catch (error) {
-            console.error('Login error:', error);
-            errorMsg.textContent = 'Invalid email or password.';
+            let displayName = usernameInput.split(' ')[0];
+            displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1).toLowerCase();
+            sessionStorage.setItem('hpn-admin-user', displayName);
+            showDashboard(displayName);
+        } else {
             errorMsg.style.display = 'block';
-            
             loginForm.style.animation = 'shake 0.4s ease-in-out';
             setTimeout(() => {
                 loginForm.style.animation = '';
             }, 400);
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Login securely';
         }
     });
 
-    logoutBtn.addEventListener('click', async () => {
-        try {
-            await auth.signOut();
-            document.getElementById('password').value = '';
-        } catch (error) {
-            console.error('Logout error:', error);
-        }
+    logoutBtn.addEventListener('click', () => {
+        sessionStorage.removeItem('hpn-admin-user');
+        loginScreen.style.display = 'flex';
+        dashboardScreen.style.display = 'none';
+        document.getElementById('password').value = '';
     });
-
-    let leadsUnsubscribe = null;
 
     function showDashboard(name) {
         loginScreen.style.display = 'none';
         dashboardScreen.style.display = 'block';
         adminNameDisplay.textContent = name;
         initLeadManager();
-    }
-
-    function showLogin() {
-        loginScreen.style.display = 'flex';
-        dashboardScreen.style.display = 'none';
-        if (leadsUnsubscribe) {
-            leadsUnsubscribe();
-            leadsUnsubscribe = null;
-        }
     }
 
     // --- Shake animation ---
@@ -140,6 +105,20 @@ document.addEventListener('DOMContentLoaded', () => {
     //  LEAD MANAGER
     // ===========================================================
 
+    // --- Firebase Initialization ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcZKBXHaL_sQmKwKiexaX69jQ028qpUqg",
+        authDomain: "hpn-project-da088.firebaseapp.com",
+        projectId: "hpn-project-da088",
+        storageBucket: "hpn-project-da088.firebasestorage.app",
+        messagingSenderId: "414937667806",
+        appId: "1:414937667806:web:d65eafb25c7459631f8a4f"
+    };
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
     let currentFilter = 'all';
     let leadsData = [];
 
@@ -149,15 +128,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function initLeadManager() {
         // Realtime listener for leads
-        leadsUnsubscribe = db.collection('leads').orderBy('timestamp', 'desc').onSnapshot(snapshot => {
+        db.collection('leads').orderBy('timestamp', 'desc').onSnapshot(snapshot => {
             leadsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderLeads();
             updateStats();
         }, err => {
             console.error("Error fetching leads:", err);
-            document.getElementById('leadsContainer').innerHTML = `<p style="color:red;text-align:center;">Error loading leads. You may not have permission, or Firebase rules are not configured.</p>`;
+            document.getElementById('leadsContainer').innerHTML = `<p style="color:red;text-align:center;">Error loading leads from database. Ensure Firebase rules are configured.</p>`;
         });
-        
+
         setupFilters();
         setupExport();
     }
@@ -190,10 +169,10 @@ document.addEventListener('DOMContentLoaded', () => {
             html += `
                 <div class="lead-item" data-id="${lead.id}">
                     <div class="lead-info">
-                        <div class="lead-name">${escapeHtml(lead.name || '')}</div>
-                        <div class="lead-company">${escapeHtml(lead.company || '')}</div>
-                        <div class="lead-message">"${escapeHtml(lead.message || '')}"</div>
-                        <div class="lead-meta">${escapeHtml(lead.email || '')} · ${timeAgo}</div>
+                        <div class="lead-name">${escapeHtml(lead.name)}</div>
+                        <div class="lead-company">${escapeHtml(lead.company)}</div>
+                        <div class="lead-message">"${escapeHtml(lead.message)}"</div>
+                        <div class="lead-meta">${escapeHtml(lead.email)} · ${timeAgo}</div>
                     </div>
                     <div class="lead-status">
                         <button class="status-badge ${statusClass}" onclick="toggleStatusDropdown('${lead.id}')">${statusLabel}</button>
@@ -238,10 +217,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- CSV Export ---
     function setupExport() {
-        const btn = document.getElementById('exportCsvBtn');
-        // Prevent multiple listeners if re-initialized
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
+        // Prevent multiple listeners if called multiple times
+        const oldBtn = document.getElementById('exportCsvBtn');
+        const newBtn = oldBtn.cloneNode(true);
+        oldBtn.parentNode.replaceChild(newBtn, oldBtn);
 
         newBtn.addEventListener('click', () => {
             const leads = getLeads();
@@ -252,12 +231,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const headers = ['Name', 'Email', 'Company', 'Message', 'Status', 'Date'];
             const rows = leads.map(l => [
-                '"' + (l.name || '').replace(/"/g, '""') + '"',
-                '"' + (l.email || '').replace(/"/g, '""') + '"',
-                '"' + (l.company || '').replace(/"/g, '""') + '"',
-                '"' + (l.message || '').replace(/"/g, '""') + '"',
+                '"' + l.name.replace(/"/g, '""') + '"',
+                '"' + l.email.replace(/"/g, '""') + '"',
+                '"' + l.company.replace(/"/g, '""') + '"',
+                '"' + l.message.replace(/"/g, '""') + '"',
                 l.status,
-                l.timestamp ? new Date(l.timestamp).toLocaleString() : ''
+                new Date(l.timestamp).toLocaleString()
             ]);
 
             let csv = headers.join(',') + '\n';
@@ -267,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = \`leads_\${new Date().toISOString().split('T')[0]}.csv\`;
+            a.download = `hpn_leads_${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
             URL.revokeObjectURL(url);
         });
@@ -289,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await db.collection('leads').doc(id).update({ status: newStatus });
         } catch (e) {
             console.error("Error updating document: ", e);
-            alert("Error updating status. Are you logged in?");
+            alert("Error updating status.");
         }
     };
 
@@ -299,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await db.collection('leads').doc(id).delete();
         } catch (e) {
             console.error("Error deleting document: ", e);
-            alert("Error deleting lead. Are you logged in?");
+            alert("Error deleting lead.");
         }
     };
 
@@ -310,18 +289,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const overlay = document.createElement('div');
         overlay.className = 'lead-detail-overlay';
-        overlay.innerHTML = \`
+        overlay.innerHTML = `
             <div class="lead-detail-card">
-                <h3>\${escapeHtml(lead.name || 'N/A')}</h3>
-                <div class="lead-company">\${escapeHtml(lead.company || 'N/A')}</div>
-                <div class="lead-detail-message">\${escapeHtml(lead.message || '')}</div>
+                <h3>${escapeHtml(lead.name)}</h3>
+                <div class="lead-company">${escapeHtml(lead.company)}</div>
+                <div class="lead-detail-message">${escapeHtml(lead.message)}</div>
                 <div class="lead-meta">
-                    📧 \${escapeHtml(lead.email || 'N/A')}<br>
-                    📅 \${lead.timestamp ? new Date(lead.timestamp).toLocaleString() : 'N/A'}
+                    📧 ${escapeHtml(lead.email)}<br>
+                    📅 ${new Date(lead.timestamp).toLocaleString()}
                 </div>
                 <button class="lead-detail-close" id="closeDetailBtn">Close</button>
             </div>
-        \`;
+        `;
         document.body.appendChild(overlay);
 
         // Close on click
