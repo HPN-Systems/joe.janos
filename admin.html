@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Joe Janos — Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Admin specific styles */
+        :root {
+            /* Basic Theme Variables for Admin */
+            --bg-surface-alt: #f5f5f7;
+            --bg-card: #ffffff;
+            --border-default: #e8e8ed;
+            --border-input: #d2d2d7;
+            --bg-input: #fbfbfd;
+            --text-primary: #1d1d1f;
+            --text-secondary: #6e6e73;
+            --text-tertiary: #98989d;
+            --primary-400: #60a5fa;
+            --primary-500: #0071e3;
+            --primary-600: #0058b9;
+            --bg-badge: #f0f5ff;
+            --bg-body: #ffffff;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.08);
+            --radius-sm: 8px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+            --radius-full: 100px;
+            --transition-fast: 0.2s;
+            --transition-normal: 0.4s;
+            --font-display: 'Inter', sans-serif;
+        }
+
+        [data-theme="dark"] {
+            --bg-surface-alt: #1d1d1f;
+            --bg-card: #2d2d2f;
+            --border-default: #3d3d3f;
+            --border-input: #4d4d4f;
+            --bg-input: #2d2d2f;
+            --text-primary: #ffffff;
+            --text-secondary: #98989d;
+            --bg-badge: #1a365d;
+            --bg-body: #1d1d1f;
+        }
+
+        body {
+            background: var(--bg-surface-alt);
+            color: var(--text-primary);
+        }
+
+        .admin-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .login-card {
+            background: var(--bg-card);
+            padding: 3rem;
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border-default);
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 440px;
+            text-align: center;
+        }
+
+        .login-card h2 {
+            font-family: var(--font-display);
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .login-card p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .error-msg {
+            color: var(--primary-500);
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            display: none;
+            font-weight: 500;
+            background: var(--bg-badge);
+            padding: 0.5rem;
+            border-radius: var(--radius-sm);
+        }
+
+        /* Dashboard Styles */
+        #dashboard-screen {
+            display: none;
+            /* Hidden by default */
+            padding-top: 2rem;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .welcome-msg {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .admin-nav {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+        }
+
+        .logout-btn {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-default);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all var(--transition-fast);
+        }
+
+        .logout-btn:hover {
+            color: var(--primary-500);
+            border-color: var(--primary-400);
+            background: var(--bg-badge);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-default);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-card h4 {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .value {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-500);
+        }
+
+        .recent-activity {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-default);
+            padding: 2rem;
+        }
+
+        .recent-activity h3 {
+            font-family: var(--font-display);
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-default);
+        }
+
+        .leads-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .filter-pills {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-pill {
+            padding: 0.4rem 1rem;
+            border-radius: var(--radius-full);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border-default);
+            background: var(--bg-body);
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .filter-pill.active {
+            background: var(--primary-500);
+            color: white;
+            border-color: var(--primary-500);
+        }
+
+        .export-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-default);
+            background: var(--bg-body);
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            color: var(--text-primary);
+        }
+
+        /* Lead Item Styles */
+        .leads-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .lead-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem;
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            background: var(--bg-body);
+            gap: 1rem;
+        }
+
+        .lead-info {
+            flex: 1;
+        }
+
+        .lead-name {
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+
+        .lead-company {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .lead-message {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+            font-style: italic;
+        }
+
+        .lead-meta {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        .lead-status {
+            position: relative;
+        }
+
+        .status-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: var(--radius-full);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .status-badge::after {
+            content: "▼";
+            font-size: 0.6rem;
+        }
+
+        .status-new {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .status-reviewed {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .status-contacted {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .status-archived {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+
+        .status-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-lg);
+            display: none;
+            z-index: 10;
+            min-width: 140px;
+            overflow: hidden;
+        }
+
+        .status-dropdown.open {
+            display: block;
+        }
+
+        .status-option {
+            width: 100%;
+            text-align: left;
+            padding: 0.6rem 1rem;
+            background: none;
+            border: none;
+            font-size: 0.85rem;
+            cursor: pointer;
+            color: var(--text-primary);
+        }
+
+        .status-option:hover {
+            background: var(--bg-surface-alt);
+        }
+
+        .lead-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .lead-action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-default);
+            background: var(--bg-body);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .lead-action-btn:hover {
+            background: var(--primary-50);
+            color: var(--primary-500);
+            border-color: var(--primary-200);
+        }
+
+        .lead-action-btn.delete:hover {
+            background: #fee2e2;
+            color: #dc2626;
+            border-color: #fca5a5;
+        }
+
+        /* Lead Detail Overlay */
+        .lead-detail-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .lead-detail-card {
+            background: var(--bg-card);
+            padding: 2.5rem;
+            border-radius: var(--radius-xl);
+            width: 100%;
+            max-width: 600px;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .lead-detail-card h3 {
+            margin-bottom: 0.2rem;
+            font-size: 1.5rem;
+        }
+
+        .lead-detail-message {
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-surface-alt);
+            border-radius: var(--radius-lg);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .lead-detail-close {
+            margin-top: 1.5rem;
+            padding: 0.8rem 1.5rem;
+            background: var(--primary-500);
+            color: white;
+            border-radius: var(--radius-full);
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .leads-empty {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .leads-empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="admin-wrapper">
+        <div class="login-card">
+            <div style="margin-bottom: 1.5rem;">
+                <span class="logo-icon" style="font-size: 2.5rem;">⚡</span>
+            </div>
+            <h2>Admin Portal</h2>
+            <p>Enter your credentials to access the dashboard</p>
+
+            <div id="errorMsg" class="error-msg">Invalid username or password.</div>
+
+            <form id="adminLoginForm">
+                <div class="form-group" style="text-align: left;">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="e.g. joe@janos.com" required
+                        style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-input); border-radius: var(--radius-sm); margin-top: 0.5rem; background: var(--bg-input); color: var(--text-primary);">
+                </div>
+                <div class="form-group" style="text-align: left; margin-top: 1rem; margin-bottom: 1.5rem;">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="••••••••" required
+                        style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-input); border-radius: var(--radius-sm); margin-top: 0.5rem; background: var(--bg-input); color: var(--text-primary);">
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">
+                    Login securely
+                </button>
+            </form>
+            <div style="margin-top: 2rem;">
+                <a href="index.html" style="font-size: 0.85rem; color: var(--text-tertiary);">&larr; Back to main
+                    site</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Screen -->
+    <div id="dashboard-screen">
+        <div class="container">
+            <header class="dashboard-header">
+                <div>
+                    <h1 class="welcome-msg">Welcome back, <span id="adminNameDisplay">Admin</span></h1>
+                    <p style="color: var(--text-secondary);">Here's your Mail box.</p>
+                </div>
+                <div class="admin-nav">
+                    <button class="theme-toggle" id="adminThemeToggle" aria-label="Toggle dark mode">
+                        <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                        </svg>
+                        <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="display:none;">
+                            <circle cx="12" cy="12" r="5" />
+                            <line x1="12" y1="1" x2="12" y2="3" />
+                            <line x1="12" y1="21" x2="12" y2="23" />
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                            <line x1="1" y1="12" x2="3" y2="12" />
+                            <line x1="21" y1="12" x2="23" y2="12" />
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                            <line x1="18.36" y1="4.22" x2="19.78" y2="5.64" />
+                        </svg>
+                    </button>
+                    <button id="logoutBtn" class="logout-btn">Log out</button>
+                </div>
+            </header>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h4>Total Messages</h4>
+                    <div class="value" id="statTotal">0</div>
+                </div>
+                <div class="stat-card">
+                    <h4>New (Unread)</h4>
+                    <div class="value" id="statNew">0</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Contacted</h4>
+                    <div class="value" id="statContacted">0</div>
+                </div>
+            </div>
+
+            <div class="recent-activity">
+                <h3>Messages</h3>
+                <div class="leads-controls">
+                    <div class="filter-pills">
+                        <button class="filter-pill active" data-filter="all">All</button>
+                        <button class="filter-pill" data-filter="new">New</button>
+                        <button class="filter-pill" data-filter="reviewed">Reviewed</button>
+                        <button class="filter-pill" data-filter="contacted">Contacted</button>
+                        <button class="filter-pill" data-filter="archived">Archived</button>
+                    </div>
+                    <button class="export-btn" id="exportCsvBtn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                        </svg>
+                        Export CSV
+                    </button>
+                </div>
+                <div id="leadsContainer">
+                    <!-- Leads will be rendered dynamically by admin.js -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK (Compat Version) -->
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+    <script src="admin.js"></script>
+</body>
+
+</html>

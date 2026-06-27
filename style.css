@@ -973,3 +973,107 @@ button {
         padding: var(--space-lg);
     }
 }
+
+/* ================================================================
+   CONTACT FORM
+   ================================================================ */
+.contact-form {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    margin-top: var(--space-xl);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.form-group label {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--gray-600);
+}
+
+.form-group input,
+.form-group textarea {
+    padding: 14px 16px;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    background-color: var(--off-white);
+    font-family: inherit;
+    font-size: var(--font-size-base);
+    color: var(--gray-800);
+    transition: all var(--duration-fast) var(--ease-out);
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--blue-500);
+    box-shadow: 0 0 0 4px var(--blue-50);
+    background-color: var(--white);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.btn-full {
+    width: 100%;
+    justify-content: center;
+    margin-top: var(--space-sm);
+}
+
+.form-success {
+    text-align: center;
+    padding: var(--space-2xl);
+    background-color: var(--white);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-100);
+    animation: fadeUp 0.5s var(--ease-out-expo);
+}
+
+.success-icon {
+    width: 64px;
+    height: 64px;
+    background-color: #34c759;
+    color: var(--white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin: 0 auto var(--space-md);
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ================================================================
+   ADMIN LINK
+   ================================================================ */
+.admin-link {
+    color: var(--gray-400);
+    opacity: 0.3;
+    font-size: var(--font-size-xs);
+    margin-left: var(--space-md);
+    transition: opacity var(--duration-fast) var(--ease-out);
+    text-decoration: none;
+}
+
+.admin-link:hover {
+    opacity: 0.8;
+}

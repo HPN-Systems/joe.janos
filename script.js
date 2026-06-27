@@ -166,6 +166,71 @@
         }, { passive: true });
     }
 
+    // ---- Firebase Form Submission ----
+    const firebaseConfig = {
+        apiKey: "AIzaSyDcZKBXHaL_sQmKwKiexaX69jQ028qpUqg",
+        authDomain: "hpn-project-da088.firebaseapp.com",
+        projectId: "hpn-project-da088",
+        storageBucket: "hpn-project-da088.firebasestorage.app",
+        messagingSenderId: "414937667806",
+        appId: "1:414937667806:web:d65eafb25c7459631f8a4f"
+    };
+
+    if (window.firebase) {
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        window.handleSubmit = async (e) => {
+            e.preventDefault();
+
+            const form = document.getElementById('contactForm');
+            const submitBtn = document.getElementById('submitBtn');
+
+            // Collect form data
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const company = document.getElementById('company').value.trim();
+            const message = document.getElementById('message').value.trim();
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Sending...';
+            submitBtn.style.opacity = '0.7';
+
+            // Build lead object
+            const lead = {
+                name: name,
+                email: email,
+                company: company || 'Not specified',
+                message: message,
+                status: 'new',
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                await db.collection('leads').add(lead);
+
+                // Show success
+                setTimeout(() => {
+                    form.innerHTML = `
+                        <div class="form-success">
+                            <div class="success-icon">✓</div>
+                            <h3>Message Sent</h3>
+                            <p>Thanks for reaching out! I'll get back to you shortly.</p>
+                        </div>
+                    `;
+                }, 800);
+            } catch (error) {
+                console.error("Error adding document: ", error);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Send Message';
+                submitBtn.style.opacity = '1';
+                alert('There was an error sending your message. Please try again.');
+            }
+        };
+    }
+
     // ---- Initialize ----
     document.addEventListener('DOMContentLoaded', () => {
         initScrollReveal();
